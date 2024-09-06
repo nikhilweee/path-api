@@ -1,0 +1,15 @@
+[project]
+name = "path-api"
+version = "0.1.0"
+description = "API for PANYNJ PATH Trains"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.114.0",
+    "pycryptodome>=3.20.0",
+    "requests>=2.32.3",
+    "signalrcore>=0.9.5",
+]
+
+[tool.uv]
+dev-dependencies = ["pudb>=2024.1.2"]
