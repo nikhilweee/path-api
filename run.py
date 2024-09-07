@@ -1,10 +1,17 @@
+import argparse
+import logging
 import time
-from api.db import get_key_from_db
-from api.signalr import SignalRClient
 
+from path.db import get_key_from_db
+from path.signalr import SignalRClient
 
-url = get_key_from_db("rt_TokenBrokerUrl_Prod")
-token = get_key_from_db("rt_TokenValue_Prod")
+logging.basicConfig(
+    format="%(asctime)s %(levelname)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO,
+    force=True,
+)
+logger = logging.getLogger(__name__)
 
 
 stations = {
@@ -28,21 +35,26 @@ directions = {
     "ToNJ": "New Jersey",
 }
 
-client = SignalRClient(url, token)
+
+def main():
+    url = get_key_from_db("rt_TokenBrokerUrl_Prod")
+    token = get_key_from_db("rt_TokenValue_Prod")
+    client = SignalRClient(url, token)
+
+    for station in list(stations.values()):
+        for direction in list(directions.values()):
+            client.start_hub(station, direction)
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Stopping Hubs ...")
+        client.stop_hubs()
 
 
-hub_conns = []
-for station in list(stations.values())[2:3]:
-    for direction in list(directions.values())[:]:
-        hub_conn = client.start_hub(station, direction)
-        hub_conns.append(hub_conn)
-
-time.sleep(60)
-
-for hub_conn in hub_conns:
-    hub_conn.stop()
-
-
-# hub_conn = client.start_hub("Newark", "New York")
-# time.sleep(30)
-# hub_conn.stop()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--refresh", action="store_true", help="Station code")
+    args = parser.parse_args()
+    main(args)

@@ -1,8 +1,8 @@
 import json
-import time
 import logging
-import requests
 from functools import partial
+
+import requests
 from signalrcore.hub_connection_builder import HubConnectionBuilder
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,7 @@ class SignalRClient:
     def __init__(self, broker_url, broker_token):
         self.broker_url = broker_url
         self.broker_token = broker_token
+        self.hubs = []
         self.results = []
 
     def _fetch_creds(self, station, direction):
@@ -77,7 +78,7 @@ class SignalRClient:
 
         return hub_conn
 
-    def handle_message(self, messages, station, direction):
+    def _handle_message(self, messages, station, direction):
         json_message = json.loads(messages[1])
 
         result = None
@@ -109,13 +110,20 @@ class SignalRClient:
         hub_conn = self._build_hub(hub_creds["url"], hub_creds["accessToken"])
 
         hub_conn.on_open(
-            lambda: print("hub opened", stations[station], directions[direction])
+            lambda: logger.info(
+                f"Starting Hub: {stations[station]} {directions[direction]}"
+            )
         )
         hub_conn.on_close(
-            lambda: print("hub closed", stations[station], directions[direction])
+            lambda: logger.info(
+                f"Stopping Hub: {stations[station]} {directions[direction]}"
+            )
         )
-        handler = partial(self.handle_message, station=station, direction=direction)
+        handler = partial(self._handle_message, station=station, direction=direction)
         hub_conn.on("SendMessage", handler)
         hub_conn.start()
-        # hub_conn.stop()
-        return hub_conn
+        self.hubs.append(hub_conn)
+
+    def stop_hubs(self):
+        for hub_conn in self.hubs:
+            hub_conn.stop()

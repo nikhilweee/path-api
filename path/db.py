@@ -1,14 +1,48 @@
-import os
+import base64
 import logging
+import os
 import sqlite3
-import requests
 import zipfile
-from api.crypto import decrypt
+
+import requests
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Util.Padding import unpad
 
 logger = logging.getLogger(__name__)
 
 
+def decrypt(cipher_text: str, legacy_key: bool = False) -> str:
+    """
+    Decrypts the provided base64-encoded string.
+
+    Args:
+        cipher_text: The string to decrypt.
+        legacy_key: Whether to use the legacy key for decryption.
+
+    Returns:
+        The decrypted version of the input.
+    """
+    LEGACY_CONFIGURATION_DECRYPT_KEY = "TLckjEE2f4mdo6d6vqiHhgTfB"
+    CONFIGURATION_DECRYPT_KEY = "PVTG16QwdKSbQhjIwSsQdAm0i"
+    KEY_SALT = bytes([73, 118, 97, 110, 32, 77, 101, 100, 118, 101, 100, 101, 118])
+
+    buffer = base64.b64decode(cipher_text.replace(" ", "+"))
+    key = LEGACY_CONFIGURATION_DECRYPT_KEY if legacy_key else CONFIGURATION_DECRYPT_KEY
+
+    kdf = PBKDF2(key, KEY_SALT, dkLen=48)  # 32 bytes for key, 16 for IV
+    key = kdf[:32]
+    iv = kdf[32:]
+
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted = unpad(cipher.decrypt(buffer), AES.block_size)
+
+    return decrypted.decode("utf-16")
+
+
 def fetch_latest_checksum(checksum="3672A87A4D8E9104E736C3F61023F013"):
+    """Fetch the checksum of the most recent databse."""
+
     headers = {
         "apikey": "3CE6A27D-6A58-4CA5-A3ED-CE2EBAEFA166",
         "appname": "RidePATH",
@@ -27,6 +61,8 @@ def fetch_latest_checksum(checksum="3672A87A4D8E9104E736C3F61023F013"):
 
 
 def download_db(checksum="3672A87A4D8E9104E736C3F61023F013"):
+    """Download and extract the database with the given checksum."""
+
     headers = {
         "apikey": "3CE6A27D-6A58-4CA5-A3ED-CE2EBAEFA166",
         "appname": "RidePATH",
@@ -53,6 +89,7 @@ def download_db(checksum="3672A87A4D8E9104E736C3F61023F013"):
 
 
 def get_key_from_db(key):
+    """Retrieve the value of a key from the configuration table."""
     con = sqlite3.connect("artifacts/db.sqlite")
     cur = con.cursor()
     res = cur.execute(
@@ -61,7 +98,7 @@ def get_key_from_db(key):
     )
     value, *_ = res.fetchone()
     value = decrypt(value)
-    print("Decrypted", value)
+    logging.info(f"Decrypted {value}")
     return value
 
 
