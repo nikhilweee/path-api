@@ -24,13 +24,13 @@ $ python path/db.py
 Listen to SignalR Hubs for new messages.
 
 ```console
- $ python run.py
+ $ python listen.py
 ```
 
 Start a FastAPI server to serve data.
 
 ```console
- $ python app.py
+ $ fastapi run api.py
 ```
 
 The latest data should be available at http://localhost:8000/ridepath.json.
