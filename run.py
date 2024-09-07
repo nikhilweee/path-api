@@ -1,4 +1,3 @@
-import argparse
 import logging
 import time
 
@@ -49,12 +48,8 @@ def main():
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        logger.info("Stopping Hubs ...")
         client.stop_hubs()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--refresh", action="store_true", help="Station code")
-    args = parser.parse_args()
-    main(args)
+    main()

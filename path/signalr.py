@@ -125,5 +125,6 @@ class SignalRClient:
         self.hubs.append(hub_conn)
 
     def stop_hubs(self):
+        logger.info("Stopping Hubs ...")
         for hub_conn in self.hubs:
             hub_conn.stop()
