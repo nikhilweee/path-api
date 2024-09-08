@@ -1,14 +1,14 @@
+import asyncio
 import logging
-import time
+import os
 
-from path.db import get_key_from_db
+from path.db import download_db, fetch_latest_checksum, get_key_from_db
 from path.signalr import SignalRClient
 
 logging.basicConfig(
-    format="%(asctime)s %(levelname)s | %(message)s",
+    format="%(asctime)s [%(name)s] %(levelname)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     level=logging.INFO,
-    force=True,
 )
 logger = logging.getLogger(__name__)
 
@@ -35,21 +35,38 @@ directions = {
 }
 
 
-def main():
+async def listen():
     url = get_key_from_db("rt_TokenBrokerUrl_Prod")
     token = get_key_from_db("rt_TokenValue_Prod")
     client = SignalRClient(url, token)
 
-    for station in list(stations.values()):
-        for direction in list(directions.values()):
+    for station in stations.values():
+        for direction in directions.values():
             client.start_hub(station, direction)
 
     try:
         while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
+            await asyncio.sleep(1)
+    except asyncio.CancelledError:
         client.stop_hubs()
 
 
+async def refresh():
+    while True:
+        await asyncio.sleep(60 * 60 * 24)
+        checksum = fetch_latest_checksum()
+        download_db(checksum=checksum)
+
+
+async def main():
+    if not os.path.isfile("artifacts/db.sqlite"):
+        download_db(fetch_latest_checksum())
+
+    try:
+        await asyncio.gather(refresh(), listen())
+    except asyncio.CancelledError:
+        print("Stopped")
+
+
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

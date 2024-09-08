@@ -35,6 +35,14 @@ $ fastapi run api.py
 
 The latest data should be available at http://localhost:8000/ridepath.json.
 
+# Docker
+
+Spin up containers for the listener and the API server using docker compose.
+
+```
+$ docker compose up -d
+```
+
 # References
 
 1. Matt Razza's [API](https://github.com/mrazza/path-data) written in C#

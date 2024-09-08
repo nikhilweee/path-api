@@ -1,0 +1,38 @@
+services:
+  path_api:
+    container_name: path_api
+    build:
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /path
+        COPY pyproject.toml .
+        RUN pip install .
+        COPY . .
+        CMD ["fastapi", "run", "api.py"]
+    restart: always
+    volumes:
+      - '/mnt/storage/path:/path/artifacts'
+    networks:
+      - proxyman_default
+    # ports:
+    #   - '8000:8000'
+  path_listen:
+    container_name: path_listen
+    build:
+      dockerfile_inline: |
+        FROM python:3.12-alpine
+        WORKDIR /path
+        COPY pyproject.toml .
+        RUN pip install .
+        COPY . .
+        CMD ["python", "listen.py"]
+    restart: always
+    stop_signal: SIGINT
+    volumes:
+      - "/mnt/storage/path:/path/artifacts"
+    networks:
+      - proxyman_default
+
+networks:
+  proxyman_default:
+    external: true
