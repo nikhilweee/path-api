@@ -1,6 +1,7 @@
 services:
   path_api:
     container_name: path_api
+    image: path-api
     build:
       dockerfile_inline: |
         FROM python:3.12-alpine
@@ -18,6 +19,7 @@ services:
     #   - '8000:8000'
   path_listen:
     container_name: path_listen
+    image: path-listen
     build:
       dockerfile_inline: |
         FROM python:3.12-alpine

@@ -12,4 +12,7 @@ dependencies = [
 ]
 
 [tool.uv]
-dev-dependencies = ["pudb>=2024.1.2"]
+dev-dependencies = [
+    "pudb>=2024.1.2",
+    "ruff>=0.6.4",
+]

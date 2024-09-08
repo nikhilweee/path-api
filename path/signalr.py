@@ -97,13 +97,14 @@ class SignalRClient:
             destination = {"label": directions[direction], "messages": []}
             result["destinations"].append(destination)
 
-        # for message in json_message["messages"]:
-        #     message["target"] = json_message["target"]
+        for message in json_message["messages"]:
+            message["lineColor"] = message["lineColor"].replace("#", "")
+            message["target"] = ""
 
         destination["messages"] = json_message["messages"]
 
         with open("artifacts/data.json", "w") as f:
-            json.dump(self.results, f, indent=2)
+            json.dump({"results": self.results}, f, indent=2)
 
     def start_hub(self, station="Newark", direction="New York"):
         hub_creds = self._fetch_creds(station, direction)

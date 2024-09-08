@@ -30,8 +30,8 @@ stations = {
 }
 
 directions = {
-    "ToNY": "New York",
     "ToNJ": "New Jersey",
+    "ToNY": "New York",
 }
 
 
