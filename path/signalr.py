@@ -70,7 +70,7 @@ class SignalRClient:
                     "type": "raw",
                     "keep_alive_interval": 10,
                     "reconnect_interval": 5,
-                    "max_attempts": 5,
+                    "max_attempts": 50,
                 }
             )
             .build()
